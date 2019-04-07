@@ -1,6 +1,8 @@
 import sys
 import pandas as pd
 import numpy as np
+import datetime
+from sodapy import Socrata
 
 '''
 Vedika Ahuja
@@ -9,39 +11,54 @@ crime_analysis.py
 Read and Analyze Reported Crime data in Chicago for 2017 and 2018
 '''
 
-CRIME_2017 = "data/reported_crimes_2017.csv"
-CRIME_2018 = "data/reported_crimes_2018.csv"
-
-def read_crime_csv(file):
+def query_crime_data():
     '''
-    Takes the filepath and name of a dataset of reported crimes downloaded from 
-    the Chicago data protal and outputs a pandas dataframe.
+    Queries 2017 and 2018 crime data from the Chicago data portal. 
 
-    Input: (str) crime data csv filepath/filename
-    Output: (pandas dataframe)
+    Come back to this to allow user to choose years? 
     '''
+    client = Socrata("data.cityofchicago.org", None)
 
-    cleaned = pd.read_csv(file)
+    # results = client.get("6zsd-86xi", where="year=2017 OR year=2018", limit=np.inf)
+    results = client.get("6zsd-86xi", where="year=2017 OR year=2018", limit=1000000) #how to I not include a limit?
 
-    return cleaned
+    results_df = pd.DataFrame.from_records(results)
 
-def concat_years(list_files):
+    return results_df
+
+def add_date_columns(crime_df):
     '''
-    Joins different years of data into one dataset.
-
-    Input: 
-        - list_files: (list) of pandas dataframes
-    Output:
-        combined: pandas dataframe
+    Convert the date column into a week and month column
+    Come back to this - nice to have
     '''
-    concat = pd.concat(list_files)
+    crime_df['date_formatted'] = pd.to_datetime(crime_df['date'])
+    
 
-    return concat
+    
+def descriptive_stat(crime_dataframe):
+    '''
+    Generate summary statistics for the crime reports data including but not 
+    limited to number of crimes of each type, 
+
+    
+    how they change over time, and 
+    how they are different by neighborhood. Please use a combination of tables 
+    and graphs to present these summary stats.
+    '''
+    crimes_by_type = 
+
+def export_dfs(output_file, list_dataframes):
+    '''
+    Takes a list of dataframes and exports them as separate sheets in an excel
+    workbook
+
+    see - http://pandas-docs.github.io/pandas-docs-travis/reference/api/pandas.ExcelWriter.html
+    '''
+    pass
+
 
 def go():
-    crime_2017 = read_crime_csv(CRIME_2017)
-    crime_2018 = read_crime_csv(CRIME_2018)
-    crimes = concat_year([crime_2017, crime_2018])
+    crimes = query_crime_data()
 
 
     return crimes
