@@ -26,15 +26,71 @@ def query_crime_data():
 
     return results_df
 
-def add_date_columns(crime_df):
+def clean_dataset(crime_df):
     '''
-    Convert the date column into a week and month column
-    Come back to this - nice to have
+    Convert the date column into a week and month column,
+    reorder columns, specifiy datatypes for each column.
     '''
+    #clean dates
     crime_df['date_formatted'] = pd.to_datetime(crime_df['date'])
-    
+    crime_df['month'] = crime_df['date_formatted'].dt.month
+    crime_df['week'] = crime_df['date_formatted'].dt.week
 
+    #specify types and order for each column
+    clean = crime_df[['id', 
+                      'case_number',
+                      'date_formatted',
+                      'month',
+                      'week',
+                      'year'
+                      'block', 
+                      'iucr',
+                      'primary_type',
+                      'description',
+                      'location_description',
+                      'arrest',
+                      'domestic',
+                      'beat',
+                      'district',
+                      'ward',
+                      'community_area',
+                      'fbi_code',
+                      'x_coordinate',
+                      'y_coordinate',
+                      'latitude',
+                      'longitude',
+                      'location_city',
+                      'location_address',
+                      'location_zip',
+                      'location_state']]
     
+    convert_dict = {'id' : 'int',
+                  'case_number': 'str',
+                  'block': 'str', 
+                  'iucr' : 'str',
+                  'primary_type' : 'str',
+                  'description' : 'str',
+                  'location_description' :'str',
+                  'arrest' : 'bool',
+                  'domestic' : 'bool',
+                  'beat' : 'str' ,
+                  'district' : 'str',
+                  'ward' : 'int',
+                  'community_area' : 'str',
+                  'fbi_code' : 'str',
+                  'x_coordinate' : 'float',
+                  'y_coordinate' : 'float',
+                  'latitude' : 'float',
+                  'longitude' : 'float' ,
+                  'location_city' : 'str',
+                  'location_address' : 'str',
+                  'location_zip' : 'str',
+                  'location_state' : 'str'}
+
+    clean = clean.astype(convert_dict)
+
+    return clean
+
 def descriptive_stat(crime_dataframe):
     '''
     Generate summary statistics for the crime reports data including but not 
@@ -45,7 +101,8 @@ def descriptive_stat(crime_dataframe):
     how they are different by neighborhood. Please use a combination of tables 
     and graphs to present these summary stats.
     '''
-    crimes_by_type = 
+    pass
+
 
 def export_dfs(output_file, list_dataframes):
     '''
