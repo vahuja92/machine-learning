@@ -42,7 +42,7 @@ def clean_dataset(crime_df):
                       'date_formatted',
                       'month',
                       'week',
-                      'year'
+                      'year',
                       'block', 
                       'iucr',
                       'primary_type',
@@ -58,13 +58,10 @@ def clean_dataset(crime_df):
                       'x_coordinate',
                       'y_coordinate',
                       'latitude',
-                      'longitude',
-                      'location_city',
-                      'location_address',
-                      'location_zip',
-                      'location_state']]
+                      'longitude']]
     
-    convert_dict = {'id' : 'int',
+    convert_dict = {
+                    'id' : 'int',
                   'case_number': 'str',
                   'block': 'str', 
                   'iucr' : 'str',
@@ -75,34 +72,37 @@ def clean_dataset(crime_df):
                   'domestic' : 'bool',
                   'beat' : 'str' ,
                   'district' : 'str',
-                  'ward' : 'int',
+                  'ward' : 'str',
                   'community_area' : 'str',
                   'fbi_code' : 'str',
                   'x_coordinate' : 'float',
                   'y_coordinate' : 'float',
                   'latitude' : 'float',
-                  'longitude' : 'float' ,
-                  'location_city' : 'str',
-                  'location_address' : 'str',
-                  'location_zip' : 'str',
-                  'location_state' : 'str'}
+                  'longitude' : 'float'}
 
     clean = clean.astype(convert_dict)
 
     return clean
 
-def descriptive_stat(crime_dataframe):
+def crime_type(crime_df):
     '''
     Generate summary statistics for the crime reports data including but not 
     limited to number of crimes of each type, 
 
     
     how they change over time, and 
-    how they are different by neighborhood. Please use a combination of tables 
-    and graphs to present these summary stats.
-    '''
-    pass
+    how they are different by neighborhood. 
 
+    Please use a combination of tables and graphs to present these summary stats.
+    '''
+    #types of crimes
+    value_counts = crime_df.primary_type.value_counts()
+    by_type = value_counts.rename_axis('primary_crime_type').to_frame('counts')
+    by_type['percent'] = by_type['counts']/by_type.counts.sum() * 100
+
+    return by_type
+
+def crime_over_time
 
 def export_dfs(output_file, list_dataframes):
     '''
