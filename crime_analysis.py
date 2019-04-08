@@ -96,13 +96,27 @@ def crime_type(crime_df):
     Please use a combination of tables and graphs to present these summary stats.
     '''
     #types of crimes
-    value_counts = crime_df.primary_type.value_counts()
-    by_type = value_counts.rename_axis('primary_crime_type').to_frame('counts')
-    by_type['percent'] = by_type['counts']/by_type.counts.sum() * 100
+    year_groups = crime_df.groupby(['year', 'primary_type'])
+    value_counts = year_groups.agg({'primary_type' : 'count'})
+    by_type = value_counts.unstack(level=0)
 
+    # year_groups = crime_df.groupby(['year', 'primary_type']).size()
     return by_type
 
-def crime_over_time
+def crime_over_time(crime_df):
+    '''
+    Plot month-year on x axis and total crimes on y-axis for the whole dataset.
+
+
+    '''
+
+    # year_groups = crime_df.groupby(['year', 'primary_type'])
+    # year_groups = crime_df.groupby(['year', 'primary_type'])
+    crime_df["month-year"] = crime_df['date_formatted'].dt.to_period("M")
+    group = crime_df.groupby("month-year").size()
+    #plot this series now.
+
+    pass
 
 def export_dfs(output_file, list_dataframes):
     '''
