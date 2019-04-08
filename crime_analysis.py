@@ -99,7 +99,9 @@ def crime_type(crime_df):
     year_groups = crime_df.groupby(['year', 'primary_type'])
     value_counts = year_groups.agg({'primary_type' : 'count'})
     by_type = value_counts.unstack(level=0)
-
+    by_type = by_type['primary_type'].reset_index()
+    by_type["percent_change"] = (by_type['2018'] - by_type['2017'])/by_type['2017']
+    
     # year_groups = crime_df.groupby(['year', 'primary_type']).size()
     return by_type
 
@@ -116,7 +118,7 @@ def crime_over_time(crime_df):
     group = crime_df.groupby("month-year").size()
     #plot this series now.
 
-    pass
+    return group
 
 def export_dfs(output_file, list_dataframes):
     '''
