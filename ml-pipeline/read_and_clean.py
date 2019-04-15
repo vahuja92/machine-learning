@@ -8,6 +8,9 @@ def read_dataset(filename):
 	first row used as the header.
 	'''
 
-	dataframe = read.csv(filename)
+	dataframe =pd.read_csv(filename)
 
 	return dataframe
+
+'''
+def explore_data(df):
