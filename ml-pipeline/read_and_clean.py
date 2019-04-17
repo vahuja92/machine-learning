@@ -3,15 +3,13 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 
 '''
-4/17
+4/18
 Tomorrow:
-	1. Get the build_model_script.py to run
 	2. Do the explore data section
 	3. Do write-up
-	4. Go back and consider making a dataset class if you have time.
 '''
 
-def read_dataset(filename, parameters=None):
+def read_dataset(filename, data_types=None, parameters=None):
 	'''
 	Takes a csv filepath/filename and saves as a pandas dataframe, with the
 	first row used as the header.
@@ -24,7 +22,7 @@ def read_dataset(filename, parameters=None):
 	(Go back and do this.)
 	'''
 
-	dataframe = pd.read_csv(filename)
+	dataframe = pd.read_csv(filename, dtype=data_types)
 
 	return dataframe
 
@@ -33,8 +31,12 @@ Explore the dataframe
 Should run these functions separately in Jupyter notebooks
 Qs - how do I output the describe() table using a function?
 df.describe()
+
+ExploreData:You can use the code you wrote for assignment 1 heretogenerate
+distributions of variables, correlations between them, find outliers,
+and data summaries.
 '''
-'''
+
 def var_distributions(df):
 	print(df.describe())
 
@@ -47,7 +49,7 @@ def cr_box_plot(df):
 
 	df.plot()
 	plt.show()
-'''
+
 '''
 Pre-ProcessData:Forthisassignment,youcanlimitthistofilling
 in missing values for the variables that have missing values.
@@ -76,13 +78,22 @@ def discretize_cont_var(df, varname, q_num_quantiles = 4):
 	Discretizes a the variable specified (varname) in the df.
 	This function automatically discretizes the variable into quartiles.
 	The user can change this by specifying the number of quantiles.
+
+	Side Effect:
+		- Changes input df by adding discretized variable
+
+	 Output:
+	 	- df (pandas dataframe)
 	'''
-	new_var = varname = "_cat"
-	df[new_var] = pd.qcut(df[varname], q_num_quantiles, duplicates='drop')
+	new_var = varname + "_cat"
+	df[new_var] = pd.qcut(df[varname],
+	 					  q_num_quantiles,
+						  labels=list(range(1,(q_num_quantiles+1))),
+						  duplicates='drop')
 
 	return df
 
-def create_dummies(df, varname):
+def create_dummies(df, varname, data_type):
 	'''
 	Create dummy variables from the categorical variable specified as varname.
 
@@ -90,10 +101,13 @@ def create_dummies(df, varname):
 		- df: pandas dataframe
 		- varname: str varname
 	'''
-	add_col = pd.get_dummies(df[varname], prefix=varname)
+	#go back to make checks on the type of data that can be made into dummies.
+	#make this more functional - create checks on this
+	add_col = pd.get_dummies(df[varname], prefix=varname, dtype = data_type)
 	df = df.join(add_col)
 
 	return df
+
 
 #################################################################
  				# BUILD MODEL
@@ -110,14 +124,14 @@ def train_logistic_model(training_df, predictor_vars, target_var):
 			variables in the model
 		- target_var: (str) the dependent variable in the model.
 	'''
-	pred_data = training_df[:, predictor_vars]
-	dep_data = training_df[:, target_var]
-	logistic_regr = LogisticRegression()
-	logistic_regr.fit(pred_data, dep_data)
+	pred_data = training_df[predictor_vars]
+	dep_data = training_df[[target_var]].to_numpy().ravel()
+	logistic_regr = LogisticRegression(solver='liblinear', penalty='l1')
+	logistic_regr.fit(pred_data, dep_data.ravel())
 
 	return logistic_regr
 
-def evaluate_logistic_model(model, x_test, y_test):
+def evaluate_logistic_model(model, test_df, predictor_vars, target_var):
 	'''
 	Takes a trained model and evaluates the accuracy of the model on the given
 	testing_df.
@@ -131,7 +145,9 @@ def evaluate_logistic_model(model, x_test, y_test):
 		- score: (float) The percent of classifiers the model predicted
 				correctly.
 	'''
-	score = logisticRegr.score(x_test, y_test)
+	pred_data = test_df[predictor_vars]
+	dep_data = test_df[[target_var]].to_numpy().ravel()
+	score = model.score(pred_data, dep_data)
 
 	return score
 # # Replace using median
