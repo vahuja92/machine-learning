@@ -5,12 +5,20 @@ import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 
 '''
-4/18
-Tomorrow:
-	1. Make histograms
-	2. Do write-up
-	3. Figure out whether to make a confusion matrix
+Set Pyplot rcParams
 '''
+SMALL_SIZE = 6
+MEDIUM_SIZE = 8
+BIGGER_SIZE = 12
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=SMALL_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
 
 def read_dataset(filename, data_types=None):
 	'''
@@ -21,10 +29,7 @@ def read_dataset(filename, data_types=None):
 		Dataset Name: 'str'
 		with names of the variables and the datatypes can be provided
 	as well.
-
-	(Go back and do this.)
 	'''
-
 	dataframe = pd.read_csv(filename, dtype=data_types)
 
 	return dataframe
@@ -35,7 +40,7 @@ Should run these functions separately in Jupyter notebooks
 Qs - how do I output the describe() table using a function?
 df.describe()
 
-ExploreData:You can use the code you wrote for assignment 1 heretogenerate
+ExploreData:You can use the code you wrote for assignment 1 here to generate
 distributions of variables, correlations between them, find outliers,
 and data summaries.
 '''
@@ -57,16 +62,19 @@ def describe_data(df):
 	print("--------------------------------------")
 	print(df.isnull().sum().sort_values(ascending=False))
 
-def distributions(df, target_var):
+def distributions(df, output_file):
 	'''
 	Print and export graphs and tables about the distributions of variables
 	in the df.
 
 	Specify the target variable to find target specific correlations
 	'''
+	#clean this up at some point
+	fig = df.hist()
+	plt.savefig(output_file, bbox_inches='tight')
+	plt.close()
 
-
-def correlations(df, target_var):
+def correlations(df, target_var, output_file):
 	'''
 	Print and export correlations between the variables.
 
@@ -78,7 +86,7 @@ def correlations(df, target_var):
 
 	corr= df[numerical_feature].corr()
 	sns.heatmap(corr, cmap="YlGnBu")
-	plt.savefig('data-exploration/correlation_heat_mpa.png', bbox_inches='tight')
+	plt.savefig(output_file, bbox_inches='tight')
 	plt.close()
 
 	print("5 most postivively correlated variables with target variable")
@@ -132,6 +140,7 @@ def discretize_cont_var(df, varname, q_num_quantiles = 4):
 
 	return df
 
+
 def create_dummies(df, varname, data_type):
 	'''
 	Create dummy variables from the categorical variable specified as varname.
@@ -165,10 +174,11 @@ def train_logistic_model(training_df, predictor_vars, target_var):
 	'''
 	pred_data = training_df[predictor_vars]
 	dep_data = training_df[[target_var]].to_numpy().ravel()
-	logistic_regr = LogisticRegression(solver='liblinear', penalty='l1')
+	logistic_regr = LogisticRegression()
 	logistic_regr.fit(pred_data, dep_data.ravel())
 
 	return logistic_regr
+
 
 def evaluate_logistic_model(model, test_df, predictor_vars, target_var):
 	'''
@@ -186,9 +196,10 @@ def evaluate_logistic_model(model, test_df, predictor_vars, target_var):
 	'''
 	pred_data = test_df[predictor_vars]
 	dep_data = test_df[[target_var]].to_numpy().ravel()
+	# class_probability = model.predict_proba(pred_data)
+	# predicted_scores = np.where(class_probability >= classifier_threshold, 1, 0)
 	score = model.score(pred_data, dep_data)
 
 	return score
-# # Replace using median
-# median = df['NUM_BEDROOMS'].median()
-# df['NUM_BEDROOMS'].fillna(median, inplace=True)
+
+# def create_confusion_matrix():
