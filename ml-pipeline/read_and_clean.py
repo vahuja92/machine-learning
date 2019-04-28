@@ -3,6 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cross_validation import train_test_split
+from sklearn.metrics import accuracy_score as accuracy
+import graphviz # If you don't have this, install via pip/conda
 
 '''
 Set Pyplot rcParams
@@ -25,10 +30,9 @@ def read_dataset(filename, data_types=None):
 	Takes a csv filepath/filename and saves as a pandas dataframe, with the
 	first row used as the header.
 
-	A JSON file with the following format:
-		Dataset Name: 'str'
-		with names of the variables and the datatypes can be provided
-	as well.
+	data_taypes: (dict)
+		The user can also specify the variable names and data types for each var
+		in a dictionary
 	'''
 	dataframe = pd.read_csv(filename, dtype=data_types)
 
@@ -36,13 +40,6 @@ def read_dataset(filename, data_types=None):
 
 '''
 Explore the dataframe
-Should run these functions separately in Jupyter notebooks
-Qs - how do I output the describe() table using a function?
-df.describe()
-
-ExploreData:You can use the code you wrote for assignment 1 here to generate
-distributions of variables, correlations between them, find outliers,
-and data summaries.
 '''
 
 def describe_data(df):
@@ -98,10 +95,7 @@ def correlations(df, target_var, output_file):
 	print (corr[target_var].sort_values(ascending=True)[:5], '\n') #top 5 values
 
 '''
-Pre-ProcessData:Forthisassignment,youcanlimitthistofilling
-in missing values for the variables that have missing values.
-You can use any simple method to do it (use mean or median to
-fill in missing values).
+Pre-Process Data:
 '''
 
 def fill_missing_w_median(df):
@@ -160,8 +154,94 @@ def create_dummies(df, varname, data_type):
 #################################################################
  				# BUILD MODEL
 #################################################################
+def define_model(model, parameters, n_cores=None):
+	'''
+	Code derived (with small modifications from) Rayid Ghani:
+	https://github.com/dssg/police-eis/blob/master/eis/models.py
+	'''
+	if model == "RandomForest":
+        return ensemble.RandomForestClassifier(
+            n_estimators=parameters['n_estimators'],
+            max_features=parameters['max_features'],
+            criterion=parameters['criterion'],
+            max_depth=parameters['max_depth'],
+            min_samples_split=parameters['min_samples_split'],
+            random_state=parameters['random_state'],
+            n_jobs=n_cores)
 
-def train_logistic_model(training_df, predictor_vars, target_var):
+    elif model == "RandomForestBagging":
+        #TODO Make Model Bagging #COME BACK HERE - not done.
+        return ensemble.BaggingClassifier(
+                    ensemble.RandomForestClassifier(
+                        n_estimators=parameters['n_estimators'],
+                        max_features=parameters['max_features'],
+                        criterion=parameters['criterion'],
+                        max_depth=parameters['max_depth'],
+                        min_samples_split=parameters['min_samples_split'],
+                        random_state=parameters['random_state'],
+                        n_jobs=n_cores),
+                    #Bagging parameters
+                    n_estimators=parameters['n_estimators_bag'],
+                    max_samples=parameters['max_samples'],
+                    max_features=parameters['max_features_bag'],
+                    bootstrap=parameters['bootstrap'],
+                    bootstrap_features=parameters['bootstrap_features'],
+                    n_jobs=n_cores
+                    )
+
+    elif model == "RandomForestBoosting":
+        #TODO Make Model Boosting
+        return ensemble.AdaBoostClassifier(
+            ensemble.RandomForestClassifier(
+                n_estimators=parameters['n_estimators'],
+                max_features=parameters['max_features'],
+                criterion=parameters['criterion'],
+                max_depth=parameters['max_depth'],
+                min_samples_split=parameters['min_samples_split'],
+                random_state=parameters['random_state'],
+                n_jobs=n_cores),
+            #Boosting parameters
+            learning_rate=parameters['learning_rate'],
+            algorithm=parameters['algorithm'],
+            n_estimators=parameters['n_estimators_boost']
+			)
+
+	elif model == 'SVM':
+        return svm.SVC(C=parameters['C_reg'],
+                       kernel=parameters['kernel'],
+                       probability=True,
+                       random_state=parameters['random_state'])
+
+    elif model == 'LogisticRegression':
+        return linear_model.LogisticRegression(
+            C=parameters['C_reg'],
+            penalty=parameters['penalty'],
+            random_state=parameters['random_state'])
+
+	elif model == 'DecisionTreeClassifier':
+        return tree.DecisionTreeClassifier(
+            max_features=parameters['max_features'],
+            criterion=parameters['criterion'],
+            max_depth=parameters['max_depth'],
+            min_samples_split=parameters['min_samples_split'],
+			random_state=parameters['random_state'])
+
+	elif model == 'KNeighborsClassifier':
+        return neighbors.KNeighborsClassifier(
+            n_neighbors=parameters['n_neighbors'],
+            weights=parameters['weights'],
+            algorithm=parameters['algorithm'],
+            n_jobs=n_cores)
+
+
+def build_model(modelobj, X_train, y_train):
+	'''
+	Takes a model class and fits the model on the training data given.
+	'''
+	modelobj = model.fit(X_train, y_train)
+
+
+def train_logistic_model(training_df, predictor_vars, target_var, model_type):
 	'''
 	Trains a logistic regression model using the dataframe provided,
 	a list of the predictor_vars in the dataframe, and the target variable.
@@ -171,6 +251,11 @@ def train_logistic_model(training_df, predictor_vars, target_var):
 		- predictor_vars: list of variables in training_df to use as predictor
 			variables in the model
 		- target_var: (str) the dependent variable in the model.
+		- model_type:
+			- This is the scikit learn model class the user wants to run:
+				options:
+				-LogisticRegression
+				-KNeighborsClassifier
 	'''
 	pred_data = training_df[predictor_vars]
 	dep_data = training_df[[target_var]].to_numpy().ravel()

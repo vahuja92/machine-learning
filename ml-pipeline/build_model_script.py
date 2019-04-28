@@ -4,7 +4,9 @@ from sklearn.linear_model import LogisticRegression
 import read_and_clean as rc
 
 
-
+DATAFILE = "data/credit-data.csv"
+#adjust this to be more modular
+#create a few different libraries - one for preprocessing, one for them models
 
 def main():
     '''
@@ -13,7 +15,7 @@ def main():
     Outputs the accuracy score of the model used on the training set.
     '''
     #read dataset
-    raw_data = rc.read_dataset("data/credit-data.csv")
+    raw_data = rc.read_dataset(DATAFILE)
     pre_df = raw_data.copy(deep=True)
 
     #explore dataset
@@ -50,6 +52,7 @@ def main():
 
     #make this modular - create checks for the types of data that can be turned into dummies
     pre_df = rc.create_dummies(pre_df, 'NumberOfDependents', 'int')
+    return pre_df
     #Build Model
     predictor_vars = ['RevolvingUtilizationOfUnsecuredLines',
                       'age',
