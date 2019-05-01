@@ -52,6 +52,7 @@ def main():
 
     #make this modular - create checks for the types of data that can be turned into dummies
     pre_df = rc.create_dummies(pre_df, 'NumberOfDependents', 'int')
+
     return pre_df
     #Build Model
     predictor_vars = ['RevolvingUtilizationOfUnsecuredLines',

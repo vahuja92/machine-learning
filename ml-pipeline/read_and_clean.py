@@ -213,10 +213,7 @@ def define_model(model, parameters, n_cores=None):
                        random_state=parameters['random_state'])
 
     elif model == 'LogisticRegression':
-        return linear_model.LogisticRegression(
-            C=parameters['C_reg'],
-            penalty=parameters['penalty'],
-            random_state=parameters['random_state'])
+        return linear_model.LogisticRegression(**parameters)
 
 	elif model == 'DecisionTreeClassifier':
         return tree.DecisionTreeClassifier(
@@ -227,11 +224,7 @@ def define_model(model, parameters, n_cores=None):
 			random_state=parameters['random_state'])
 
 	elif model == 'KNeighborsClassifier':
-        return neighbors.KNeighborsClassifier(
-            n_neighbors=parameters['n_neighbors'],
-            weights=parameters['weights'],
-            algorithm=parameters['algorithm'],
-            n_jobs=n_cores)
+        return neighbors.KNeighborsClassifier(**parameters)
 
 
 def build_model(modelobj, X_train, y_train):
