@@ -20,7 +20,7 @@ def pre_process(infile):
     rc.describe_data(pre_df)
 
     #fill missing values w/ the median of the column
-    rc.fill_missing_w_median(pre_df)
+    # rc.fill_missing_w_median(pre_df)
 
     #convert date columns to datetime
     columns_to_date_time = ['datefullyfunded', 'date_posted']

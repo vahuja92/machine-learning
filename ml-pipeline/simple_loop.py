@@ -17,6 +17,11 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 import time
 import seaborn as sns
+import preprocess_helper as rc
+import preprocess as pre
+from datetime import timedelta
+from datetime import datetime
+
 
 # for jupyter notebooks
 #%matplotlib inline
@@ -158,16 +163,34 @@ def plot_precision_recall_n(y_true, y_prob, model_name):
 
 
 
-def clf_loop(models_to_run, clfs, grid, X, y):
+def clf_loop(models_to_run, clfs, grid, data, features):
     """
     Runs the loop using models_to_run, clfs, gridm and the data
     """
-    results_df =  pd.DataFrame(columns=('model_type','clf', 'parameters', 'auc-roc', \
+    results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'parameters', 'auc-roc', \
                                         'p_at_1', 'p_at_2', 'p_at_5', 'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50', \
-                                        'r_at_1', 'r_at_2', "r_at_5", "r_at_10", 'r_at_20', 'r_at_30', 'r_at_50' ))
-    for n in range(1, 2):
+                                        'r_at_1', 'r_at_2', "r_at_5", "r_at_10", 'r_at_20', 'r_at_30', 'r_at_50', \
+                                         'baseline', 'len_x_train'))
+    validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
+
+    for validation_date in validation_dates:
         # create training and valdation sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        train_set = data[data['date_posted'] <= datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=60)]
+        rc.fill_missing_w_median(train_set)
+        X_train = train_set[features]
+        y_train = train_set['less_60']
+        # fill in missing values for train set using just the train set
+        # we'll do it a very naive way here but you should think more carefully about this first
+        train_set.dropna(axis=1, how='any', inplace=True)
+
+        validation_set = data[data['date_posted'] > datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=0)]
+        # fill in missing values for validation set using all the data
+        # we'll do it a very naive way here but you should think more carefully about this first
+        rc.fill_missing_w_median(validation_set)
+        validation_set.dropna(axis=1, how='any', inplace=True)
+        X_test = validation_set[features]
+        y_test = validation_set['less_60']
+
         for index,clf in enumerate([clfs[x] for x in models_to_run]):
             print(models_to_run[index])
             parameter_values = grid[models_to_run[index]]
@@ -178,7 +201,8 @@ def clf_loop(models_to_run, clfs, grid, X, y):
                     # you can also store the model, feature importances, and prediction scores
                     # we're only storing the metrics for now
                     y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
-                    results_df.loc[len(results_df)] = [models_to_run[index],clf, p,
+                    baseline = y_pred_probs.sum()/len(y_pred_probs)
+                    results_df.loc[len(results_df)] = [models_to_run[index],validation_date, clf, p,
                                                        roc_auc_score(y_test, y_pred_probs),
                                                        precision_at_k(y_test_sorted,y_pred_probs_sorted,1.0),
                                                        precision_at_k(y_test_sorted,y_pred_probs_sorted,2.0),
@@ -193,10 +217,10 @@ def clf_loop(models_to_run, clfs, grid, X, y):
                                                        recall_at_k(y_test_sorted,y_pred_probs_sorted,10.0),
                                                        recall_at_k(y_test_sorted,y_pred_probs_sorted,20.0),
                                                        recall_at_k(y_test_sorted,y_pred_probs_sorted,30.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,50.0)]
+                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,50.0),
+                                                       baseline, len(X_train)]
 
                     # plot_precision_recall_n(y_test,y_pred_probs,clf)
-                    print("got here")
                 except IndexError as e:
                     print('Error:',e)
                     continue
@@ -206,8 +230,8 @@ def clf_loop(models_to_run, clfs, grid, X, y):
 
 
 
-def main(df, outfile):
-
+def main(infile, outfile):
+    df = pre.pre_process(infile)
     # define grid to use: test, small, large
     grid_size = 'test'
     clfs, grid = define_clfs_params(grid_size)
@@ -237,13 +261,9 @@ def main(df, outfile):
                         "total_price_including_optional_support", "students_reached",
                         "date_posted", "datefullyfunded", "dif", "less_60"]]
 
-    X = df[features]
-
-    # define label
-    y = df['less_60']
 
     # call clf_loop and store results in results_df
-    results_df = clf_loop(models_to_run, clfs, grid, X, y)
+    results_df = clf_loop(models_to_run, clfs, grid, df, features)
     if NOTEBOOK == 1:
         results_df
 
