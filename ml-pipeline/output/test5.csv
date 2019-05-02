@@ -1,0 +1,5 @@
+model_type,clf,parameters,auc-roc,p_at_1,p_at_2,p_at_5,p_at_10,p_at_20,p_at_30,p_at_50,r_at_1,r_at_2,r_at_5,r_at_10,r_at_20,r_at_30,r_at_50
+SVM,"SVC(C=0.01, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma='auto_deprecated',
+  kernel='linear', max_iter=-1, probability=True, random_state=0,
+  shrinking=True, tol=0.001, verbose=False)","{'C': 0.01, 'kernel': 'linear'}",0.43107707509881427,1.0,0.6,0.6666666666666666,0.72,0.66,0.68,0.688,0.010869565217391304,0.016304347826086956,0.043478260869565216,0.09782608695652174,0.1793478260869565,0.27717391304347827,0.4673913043478261

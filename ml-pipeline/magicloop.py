@@ -42,14 +42,16 @@ from read_and_clean_helperfunctions import *
 now do this with the data!
 '''
 
-def magicloop():
+def magicloop(model, pre_df, outfile):
+
     '''
     For now, the magicloop function takes..
 
     Inputs:
-        - df: pandas dataframe (this is the preprocessed data. For now, inputting
+        - pre_df: the preprocessed pandas dataframe (this is the preprocessed data. For now, inputting
                 this as a dataframe for ease of playing around with it. Rayid Inputs
                 a csv file instead)
+        - outfile: the file to write the output of the models
     '''
     #read the csv data - this might have to call the preprocessing function
     # data = pd.read_csv(infile)
@@ -90,6 +92,12 @@ def magicloop():
         elif "resource_type_" in col:
             resource_type.append(col)
 
+    all_predictors = school_predictors + primary_subject_predictors + \
+                    secondary_subject_predictors + \
+                    poverty_level_predictors + \
+                    grade_level_predictors + \
+                    teacher_gender_predictors + \
+                    resource_type
 
     # models_to_run=['RF','AB', 'LR', 'SVM', 'GB', 'DT', 'KNN'
     if (model == 'all'):
@@ -100,22 +108,23 @@ def magicloop():
 
     clfs, grid = define_clfs_params(grid_size)
 
+    #FOR NOW, USE ALL THE PREDICTORS
     # which feature/predictor sets do we want to use in our analysis
-    predictor_sets = [primary_subject_predictors,
-                    secondary_subject_predictors,
-                    poverty_level_predictors,
-                    grade_level_predictors,
-                    teacher_gender_predictors,
-                    resource_type]
-
-    #FIGURE OUT WHAT THIS DOES
-    # generate all possible subsets of the feature/predictor groups
-    predictor_subsets = get_subsets(predictor_sets)
-
-    all_predictors=[]
-    for p in predictor_subsets:
-        merged = list(itertools.chain.from_iterable(p))
-        all_predictors.append(merged)
+    # predictor_sets = [primary_subject_predictors,
+    #                 secondary_subject_predictors,
+    #                 poverty_level_predictors,
+    #                 grade_level_predictors,
+    #                 teacher_gender_predictors,
+    #                 resource_type]
+    #
+    # #FIGURE OUT WHAT THIS DOES
+    # # generate all possible subsets of the feature/predictor groups
+    # predictor_subsets = get_subsets(predictor_sets)
+    #
+    # all_predictors=[]
+    # for p in predictor_subsets:
+    #     merged = list(itertools.chain.from_iterable(p))
+    #     all_predictors.append(merged)
 
     # write header for the csv
     with open(outfile, "w") as myfile:
@@ -128,86 +137,76 @@ def magicloop():
                                         'precision_at_50','recall_at_5','recall_at_10','recall_at_20','recall_at_30','recall_at_40',
                                         'recall_at_50','auc-roc'))
 
+    # Logistic Regression, K-Nearest Neighbor, Decision Trees, SVM, Random Forests, Boosting, and Bagging.
+
+
     # the magic loop starts here
     # we will loop over models, parameters, outcomes, validation_Dates
     # and store several evaluation metrics
     #COME BACK HERE, follow this... see if you can just create your own dictionaries here for parameters
-    for index,clf in enumerate([clfs[x] for x in models_to_run]):
-        parameter_values = grid[models_to_run[index]]
-        for p in ParameterGrid(parameter_values):
-            for current_outcome in outcomes:
-                for predictor in all_predictors:
-                    for validation_date in validation_dates:
-                        try:
-                            print models_to_run[index]
-                            clf.set_params(**p)
-                            if (outcome == '30_day_readmits'):
-                                delta = 30
-                            elif (outcome == '60_day_readmits'):
-                                delta = 60
-                            elif (outcome == '180_day_readmits'):
-                                delta = 180
-                            else:
-                                raise ValueError('value of outcome is unknown')
+        # the magic loop starts here
+    # we will loop over models, parameters, outcomes, validation_Dates
+    # and store several evaluation metrics
 
-                            train_set = data[data[prediction_time] <= datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=delta)]
-                            # fill in missing values for train set using just the train set
-                            # we'll do it a very naive way here but you should think more carefully about this first
-                            train_set.fillna(train_set.mean(), inplace=True)
-                            train_set.dropna(axis=1, how='any', inplace=True)
 
-                            validation_set = data[data[prediction_time] > datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=0)]
-                            # fill in missing values for validation set using all the data
-                            # we'll do it a very naive way here but you should think more carefully about this first
-                            validation_set.fillna(data.mean(), inplace=True)
-                            validation_set.dropna(axis=1, how='any', inplace=True)
+def clf_loop(models_to_run, clfs, grid, X, y):
+    """Runs the loop using models_to_run, clfs, gridm and the data
+    """
+    results_df =  pd.DataFrame(columns=('model_type','clf', 'parameters', 'auc-roc','p_at_5', 'p_at_10', 'p_at_20'))
+    for n in range(1, 2):
+        # create training and valdation sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        for index,clf in enumerate([clfs[x] for x in models_to_run]):
+            print(models_to_run[index])
+            parameter_values = grid[models_to_run[index]]
+            for p in ParameterGrid(parameter_values):
+                try:
+                    clf.set_params(**p)
+                    y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
+                    # you can also store the model, feature importances, and prediction scores
+                    # we're only storing the metrics for now
+                    y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
+                    results_df.loc[len(results_df)] = [models_to_run[index],clf, p,
+                                                       roc_auc_score(y_test, y_pred_probs),
+                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,5.0),
+                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,10.0),
+                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,20.0)]
+                    if NOTEBOOK == 1:
+                        plot_precision_recall_n(y_test,y_pred_probs,clf)
+                except IndexError as e:
+                    print('Error:',e)
+                    continue
+    return results_df
 
-                            print predictor
-                            # get predictors by removing those dropped by dropna
-                            predictors_to_use = list(set(predictor).intersection(train_set.columns))
 
-                            model = clf.fit(train_set[predictor], train_set[current_outcome])
-                            pred_probs = clf.predict_proba(validation_set[predictor])[::,1]
-                            print len(train_set)
-                            print len(validation_set)
-                            #pred_probs_sorted, true_outcome_sorted = zip(*sorted(zip(pred_probs, validation_set[current_outcome]), reverse=True))
-                            results_df.loc[len(results_df)] = [models_to_run[index],clf, p, current_outcome, validation_date, group,
-                                                               len(train_set),len(validation_set),
-                                                               predictor,
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 100),
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 5),
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 10),
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 20),
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 30),
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 40),
-                                                                precision_at_k(validation_set[current_outcome],pred_probs, 50),
-                                                                recall_at_k(validation_set[current_outcome],pred_probs, 5),
-                                                                recall_at_k(validation_set[current_outcome],pred_probs, 10),
-                                                                recall_at_k(validation_set[current_outcome],pred_probs, 20),
-                                                                recall_at_k(validation_set[current_outcome],pred_probs, 30),
-                                                                recall_at_k(validation_set[current_outcome],pred_probs, 40),
-                                                                recall_at_k(validation_set[current_outcome],pred_probs, 50),
-                                                                roc_auc_score(validation_set[current_outcome], pred_probs)]
 
-                            # plot precision recall graph
-                            # we'll show them here but you can also save them to disk
-                            plot_precision_recall_n(validation_set[current_outcome], pred_probs, clf, 'show')
-                            # write results to csv as they come in so we always have something to see even if models runs for days
-                            with open(outfile, "a") as myfile:
-                                csvwriter = csv.writer(myfile, dialect='excel', quoting=csv.QUOTE_ALL)
-                                strp = str(p)
-                                strp.replace('\n', '')
-                                strclf = str(clf)
-                                strclf.replace('\n', '')
-                                csvwriter.writerow([models_to_run[index],strclf, strp, current_outcome, validation_date, group,len(train_set),len(validation_set), predictor,  precision_at_k(validation_set[current_outcome],pred_probs, 100), precision_at_k(validation_set[current_outcome],pred_probs, 5), precision_at_k(validation_set[current_outcome],pred_probs, 10), precision_at_k(validation_set[current_outcome],pred_probs, 20), precision_at_k(validation_set[current_outcome],pred_probs, 30), precision_at_k(validation_set[current_outcome],pred_probs, 40), precision_at_k(validation_set[current_outcome],pred_probs, 50), recall_at_k(validation_set[current_outcome],pred_probs, 5), recall_at_k(validation_set[current_outcome],pred_probs, 10), recall_at_k(validation_set[current_outcome],pred_probs, 20), recall_at_k(validation_set[current_outcome],pred_probs, 30), recall_at_k(validation_set[current_outcome],pred_probs, 40), recall_at_k(validation_set[current_outcome],pred_probs, 50),roc_auc_score(validation_set[current_outcome], pred_probs)])
-                        except IndexError, e:
-                            print 'Error:',e
-                            continue
+def main():
 
-    # write final dataframe to csv
-    dfoutfile = 'df_' + outfile
-    results_df.to_csv(dfoutfile, index=False)
+    # define grid to use: test, small, large
+    grid_size = 'test'
+    clfs, grid = define_clfs_params(grid_size)
+
+    # define models to run
+    models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
+
+    # load data from csv
+    df = pd.read_csv("/Users/rayid/Projects/uchicago/Teaching/MLPP-2017/Homeworks/Assignment 2/credit-data.csv")
+
+    # select features to use
+    features  =  ['RevolvingUtilizationOfUnsecuredLines', 'DebtRatio', 'age', 'NumberOfTimes90DaysLate']
+    X = df[features]
+
+    # define label
+    y = df.SeriousDlqin2yrs
+
+    # call clf_loop and store results in results_df
+    results_df = clf_loop(models_to_run, clfs,grid, X,y)
+    if NOTEBOOK == 1:
+        results_df
+
+    # save to csv
+    results_df.to_csv('results.csv', index=False)
 
 
 if __name__ == '__main__':
-main()
+    main()
