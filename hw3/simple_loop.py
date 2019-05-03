@@ -21,7 +21,7 @@ import preprocess_helper as rc
 import preprocess as pre
 from datetime import timedelta
 from datetime import datetime
-
+import sys
 
 # for jupyter notebooks
 #%matplotlib inline
@@ -236,7 +236,7 @@ def clf_loop(models_to_run, clfs, grid, data, features, outfile):
 
 
 # def main(infile, outfile):
-def main(infile, outfile, run_on_sample, grid_size):
+def build_output_models(infile, outfile, models_to_run, run_on_sample, grid_size):
 
     df = pre.pre_process(infile)
     # define grid to use: test, small, large
@@ -248,7 +248,7 @@ def main(infile, outfile, run_on_sample, grid_size):
     # models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
  # Logistic Regression, K-Nearest Neighbor, Decision Trees, SVM, Random Forests, Boosting, and Bagging.
     # models_to_run=['KNN', 'RF', 'LR', 'DT', 'AB', 'SVM']
-    models_to_run=['DT', 'RF', 'AB', 'KNN', 'SVM']
+    # models_to_run=['DT', 'RF', 'AB', 'KNN', 'LR', 'SVM']
     # models_to_run=['RF']
     # models_to_run=['LR']
 
@@ -279,6 +279,15 @@ def main(infile, outfile, run_on_sample, grid_size):
     # save to csv
     results_df.to_csv(outfile, index=False)
 
+def main():
+    infile = sys.argv[1]
+    outfile = sys.argv[2]
+    model = sys.argv[3]
+    run_on_sample = sys.argv[5]
+        # 1 = yes, 0 = no
+    grid_size = sys.argv[5]
+
+    build_output_models(infile, outfile, model, run_on_sample, grid_size)
 
 if __name__ == '__main__':
     main()
