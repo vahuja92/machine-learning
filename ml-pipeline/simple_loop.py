@@ -163,7 +163,7 @@ def plot_precision_recall_n(y_true, y_prob, model_name):
 
 
 
-def clf_loop(models_to_run, clfs, grid, data, features):
+def clf_loop(models_to_run, clfs, grid, data, features, outfile):
     """
     Runs the loop using models_to_run, clfs, gridm and the data
     """
@@ -173,28 +173,29 @@ def clf_loop(models_to_run, clfs, grid, data, features):
                                          'baseline', 'len_x_train'))
     validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
 
-    for validation_date in validation_dates:
-        # create training and valdation sets
-        train_set = data[data['date_posted'] <= datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=60)]
-        rc.fill_missing_w_median(train_set)
-        X_train = train_set[features]
-        y_train = train_set['less_60']
-        # fill in missing values for train set using just the train set
-        # we'll do it a very naive way here but you should think more carefully about this first
-        train_set.dropna(axis=1, how='any', inplace=True)
+    for index,clf in enumerate([clfs[x] for x in models_to_run]):
+        for validation_date in validation_dates:
+            print(validation_date)
+            # create training and valdation sets
+            train_set = data.loc[data['date_posted'] <= datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=60)]
+            rc.fill_missing_w_median(train_set)
+            X_train = train_set[features]
+            y_train = train_set['less_60']
+            # fill in missing values for train set using just the train set
+            # we'll do it a very naive way here but you should think more carefully about this first
+            train_set.dropna(axis=1, how='any', inplace=True)
 
-        validation_set = data[data['date_posted'] > datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=0)]
-        # fill in missing values for validation set using all the data
-        # we'll do it a very naive way here but you should think more carefully about this first
-        rc.fill_missing_w_median(validation_set)
-        validation_set.dropna(axis=1, how='any', inplace=True)
-        X_test = validation_set[features]
-        y_test = validation_set['less_60']
-
-        for index,clf in enumerate([clfs[x] for x in models_to_run]):
+            validation_set = data.loc[data['date_posted'] > datetime.strptime(validation_date, '%Y-%m-%d') - timedelta(days=0)]
+            # fill in missing values for validation set using all the data
+            # we'll do it a very naive way here but you should think more carefully about this first
+            rc.fill_missing_w_median(validation_set)
+            validation_set.dropna(axis=1, how='any', inplace=True)
+            X_test = validation_set[features]
+            y_test = validation_set['less_60']
             print(models_to_run[index])
             parameter_values = grid[models_to_run[index]]
             for p in ParameterGrid(parameter_values):
+                print(p)
                 try:
                     clf.set_params(**p)
                     y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
@@ -221,27 +222,36 @@ def clf_loop(models_to_run, clfs, grid, data, features):
                                                        baseline, len(X_train)]
 
                     # plot_precision_recall_n(y_test,y_pred_probs,clf)
+                    print("got here 1")
+
                 except IndexError as e:
                     print('Error:',e)
                     continue
+        print("Reading to file")
+        csv_to_output = outfile + models_to_run[index] + ".csv"
+        results_df.to_csv(csv_to_output, index=False)
 
-                print("got here")
     return results_df
 
 
 
-def main(infile, outfile):
+# def main(infile, outfile):
+def main(infile, outfile, run_on_sample, grid_size):
+
     df = pre.pre_process(infile)
     # define grid to use: test, small, large
-    grid_size = 'test'
     clfs, grid = define_clfs_params(grid_size)
+    df_sub = df.sample(frac=.25)
 
     # define models to run
     # models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
     # models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
  # Logistic Regression, K-Nearest Neighbor, Decision Trees, SVM, Random Forests, Boosting, and Bagging.
-    # models_to_run=['KNN', 'RF', 'LR', 'DT', 'AB']
-    models_to_run = ['SVM']
+    # models_to_run=['KNN', 'RF', 'LR', 'DT', 'AB', 'SVM']
+    models_to_run=['DT', 'RF', 'AB', 'KNN', 'SVM']
+    # models_to_run=['RF']
+    # models_to_run=['LR']
+
     # load data from csv
     # df = pd.read_csv("/Users/rayid/Projects/uchicago/Teaching/MLPP-2017/Homeworks/Assignment 2/credit-data.csv")
 
@@ -262,11 +272,10 @@ def main(infile, outfile):
                         "date_posted", "datefullyfunded", "dif", "less_60"]]
 
 
-    # call clf_loop and store results in results_df
-    results_df = clf_loop(models_to_run, clfs, grid, df, features)
-    if NOTEBOOK == 1:
-        results_df
-
+    if run_on_sample == 1:
+        results_df = clf_loop(models_to_run, clfs, grid, df_sub, features, "output/sample_mod_v2")
+    else:
+        results_df = clf_loop(models_to_run, clfs, grid, df, features, "output/sample_mod_v2_")
     # save to csv
     results_df.to_csv(outfile, index=False)
 
