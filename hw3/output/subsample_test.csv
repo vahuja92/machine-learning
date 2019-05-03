@@ -1,0 +1,85 @@
+model_type,validation_date,clf,parameters,auc-roc,p_at_1,p_at_2,p_at_5,p_at_10,p_at_20,p_at_30,p_at_50,r_at_1,r_at_2,r_at_5,r_at_10,r_at_20,r_at_30,r_at_50,baseline,len_x_train
+DT,2012-07-01,"DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=1,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=None,
+            splitter='best')","{'criterion': 'gini', 'max_depth': 1, 'min_samples_split': 10}",0.5913846361479188,0.0,0.0,0.0,0.0,0.0,0.1664636622005684,0.49951282884053266,0.0,0.0,0.0,0.0,0.0,0.17784846732215154,0.8895315211104685,0.31879275459891626,5424
+DT,2013-01-01,"DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=1,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=None,
+            splitter='best')","{'criterion': 'gini', 'max_depth': 1, 'min_samples_split': 10}",0.5936154614592968,0.0,0.0,0.0,0.1148936170212766,0.057733211789729566,0.20522690437601296,0.5230918813806514,0.0,0.0,0.0,0.03913853799958584,0.039345620211223856,0.20977428038931456,0.8912818388900393,0.2854999852946077,12432
+DT,2013-07-01,"DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=1,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=None,
+            splitter='best')","{'criterion': 'gini', 'max_depth': 1, 'min_samples_split': 10}",0.5892961947056774,0.0,0.0,0.0,0.0718132854578097,0.036355475763016155,0.19090365050867744,0.5144498294740621,0.0,0.0,0.0,0.025252525252525252,0.02556818181818182,0.2013888888888889,0.9046717171717171,0.28995898838699424,18461
+RF,2012-07-01,"RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=1, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, n_estimators=1, n_jobs=-1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)","{'max_depth': 1, 'max_features': 'sqrt', 'min_samples_split': 10, 'n_estimators': 1}",0.5025557635078021,0.0040650406504065045,0.0020325203252032522,0.024370430544272948,0.2838002436053593,0.3972797401542834,0.26945459466774935,0.5615459564793764,0.00014459224985540774,0.00014459224985540774,0.004337767495662233,0.10106998264893002,0.28296703296703296,0.28788316946211684,1.0,0.3164305068543513,5424
+RF,2013-01-01,"RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=1, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, n_estimators=1, n_jobs=-1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)","{'max_depth': 1, 'max_features': 'sqrt', 'min_samples_split': 10, 'n_estimators': 1}",0.5018983189116997,0.12804878048780488,0.2917933130699088,0.11678832116788321,0.2814589665653495,0.2601033120632027,0.3117909238249595,0.5868983957219251,0.004348726444398426,0.019879892317249948,0.019879892317249948,0.0958790639884034,0.17726237316214538,0.31869952371091326,1.0,0.28558915086035497,12432
+RF,2013-07-01,"RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=1, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, n_estimators=1, n_jobs=-1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)","{'max_depth': 1, 'max_features': 'sqrt', 'min_samples_split': 10, 'n_estimators': 1}",0.5392245733194009,0.0,0.0,0.0,0.0,0.0,0.16606822262118492,0.43026386645126546,0.0,0.0,0.0,0.0,0.0,0.17518939393939395,0.7566287878787878,0.28375942086349726,18461
+AB,2012-07-01,"AdaBoostClassifier(algorithm='SAMME',
+          base_estimator=DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=1,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=None,
+            splitter='best'),
+          learning_rate=1.0, n_estimators=1, random_state=None)","{'algorithm': 'SAMME', 'n_estimators': 1}",0.5913846361479188,0.0,0.0,0.0,0.0,0.0,0.1664636622005684,0.49951282884053266,0.0,0.0,0.0,0.0,0.0,0.17784846732215154,0.8895315211104685,0.4109469910164147,5424
+AB,2013-01-01,"AdaBoostClassifier(algorithm='SAMME',
+          base_estimator=DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=1,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=None,
+            splitter='best'),
+          learning_rate=1.0, n_estimators=1, random_state=None)","{'algorithm': 'SAMME', 'n_estimators': 1}",0.5936154614592968,0.0,0.0,0.0,0.1148936170212766,0.057733211789729566,0.20522690437601296,0.5230918813806514,0.0,0.0,0.0,0.03913853799958584,0.039345620211223856,0.20977428038931456,0.8912818388900393,0.3950343616032257,12432
+AB,2013-07-01,"AdaBoostClassifier(algorithm='SAMME',
+          base_estimator=DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=1,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=None,
+            splitter='best'),
+          learning_rate=1.0, n_estimators=1, random_state=None)","{'algorithm': 'SAMME', 'n_estimators': 1}",0.5892961947056774,0.0,0.0,0.0,0.0718132854578097,0.036355475763016155,0.19090365050867744,0.5144498294740621,0.0,0.0,0.0,0.025252525252525252,0.02556818181818182,0.2013888888888889,0.9046717171717171,0.3971604861656375,18461
+KNN,2012-07-01,"KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+           metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+           weights='uniform')","{'algorithm': 'auto', 'n_neighbors': 5, 'weights': 'uniform'}",0.5763290334251314,0.23577235772357724,0.11788617886178862,0.3257514216084484,0.2387332521315469,0.33110028420625254,0.2722966571931249,0.3459727184150698,0.00838635049161365,0.00838635049161365,0.05798149219201851,0.08502024291497975,0.23582995951417005,0.2909196067090804,0.6161075766338924,0.33350925625202993,5424
+KNN,2013-01-01,"KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+           metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+           weights='uniform')","{'algorithm': 'auto', 'n_neighbors': 5, 'weights': 'uniform'}",0.5817904562760079,0.2682926829268293,0.1337386018237082,0.3795620437956204,0.20425531914893616,0.3716195685202066,0.2477714748784441,0.3926835196888673,0.009111617312072893,0.009111617312072893,0.06460965003106234,0.06957962311037481,0.2532615448332988,0.2532615448332988,0.6690826258024436,0.30098444336412256,12432
+KNN,2013-07-01,"KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+           metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+           weights='uniform')","{'algorithm': 'auto', 'n_neighbors': 5, 'weights': 'uniform'}",0.5913257773661379,0.3333333333333333,0.16666666666666666,0.39676840215439857,0.2244165170556553,0.36759425493716336,0.2528426092160383,0.3694130317716747,0.01167929292929293,0.01167929292929293,0.06976010101010101,0.07891414141414141,0.2585227272727273,0.26672979797979796,0.6496212121212122,0.3076370815758772,18461
+SVM,2012-07-01,"SVC(C=0.01, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma='auto_deprecated',
+  kernel='linear', max_iter=-1, probability=True, random_state=0,
+  shrinking=True, tol=0.001, verbose=False)","{'C': 0.01, 'kernel': 'linear'}",0.6330966028362672,0.4796747967479675,0.4735772357723577,0.4524776604386678,0.4344295574502639,0.4190012180267966,0.3955880362701313,0.36091263397206885,0.017061885482938115,0.033689994216310006,0.08053788316946212,0.1547137073452863,0.2984384037015616,0.42264314632735683,0.6427125506072875,0.3192368565930967,5424
+SVM,2013-01-01,"SVC(C=0.01, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma='auto_deprecated',
+  kernel='linear', max_iter=-1, probability=True, random_state=0,
+  shrinking=True, tol=0.001, verbose=False)","{'C': 0.01, 'kernel': 'linear'}",0.6220464135941679,0.4451219512195122,0.44376899696048633,0.44525547445255476,0.4340425531914894,0.4181099969614099,0.39931118314424635,0.3675255226057365,0.01511700144957548,0.03023400289915096,0.07579208945951543,0.1478566991095465,0.2849451232139159,0.408159039138538,0.6262166079933734,0.28515105689995707,12432
+SVM,2013-07-01,"SVC(C=0.01, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma='auto_deprecated',
+  kernel='linear', max_iter=-1, probability=True, random_state=0,
+  shrinking=True, tol=0.001, verbose=False)","{'C': 0.01, 'kernel': 'linear'}",0.5373075385516608,0.35135135135135137,0.38738738738738737,0.362657091561939,0.33662477558348297,0.31687612208258525,0.31448234590065827,0.3026386645126548,0.01231060606060606,0.027146464646464648,0.06376262626262626,0.11837121212121213,0.22285353535353536,0.3317550505050505,0.5321969696969697,0.2846271236085828,18461

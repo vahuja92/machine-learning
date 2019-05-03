@@ -1,0 +1,13 @@
+model_type,validation_date,clf,parameters,auc-roc,p_at_1,p_at_2,p_at_5,p_at_10,p_at_20,p_at_30,p_at_50,r_at_1,r_at_2,r_at_5,r_at_10,r_at_20,r_at_30,r_at_50,baseline,len_x_train
+LR,2012-07-01,"LogisticRegression(C=0.01, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='warn',
+          n_jobs=None, penalty='l1', random_state=None, solver='warn',
+          tol=0.0001, verbose=0, warm_start=False)","{'C': 0.01, 'penalty': 'l1'}",0.5,0.8571428571428571,0.9333333333333333,0.9743589743589743,0.9871794871794872,0.9935897435897436,0.9957264957264957,0.9974424552429667,0.0106951871657754,0.024955436720142603,0.0677361853832442,0.13725490196078433,0.27629233511586454,0.41532976827094475,0.6951871657754011,0.5,166
+LR,2013-01-01,"LogisticRegression(C=0.01, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='warn',
+          n_jobs=None, penalty='l1', random_state=None, solver='warn',
+          tol=0.0001, verbose=0, warm_start=False)","{'C': 0.01, 'penalty': 'l1'}",0.5354701925141345,0.4,0.2,0.68,0.43137254901960786,0.6078431372549019,0.738562091503268,0.74609375,0.0056179775280898875,0.0056179775280898875,0.047752808988764044,0.06179775280898876,0.17415730337078653,0.31741573033707865,0.5365168539325843,0.5985002080083033,384
+LR,2013-07-01,"LogisticRegression(C=0.01, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='warn',
+          n_jobs=None, penalty='l1', random_state=None, solver='warn',
+          tol=0.0001, verbose=0, warm_start=False)","{'C': 0.01, 'penalty': 'l1'}",0.5366381856124739,0.6666666666666666,0.5,0.7647058823529411,0.5,0.6176470588235294,0.7450980392156863,0.7134502923976608,0.008583690987124463,0.012875536480686695,0.055793991416309016,0.07296137339055794,0.18025751072961374,0.3261802575107296,0.5236051502145923,0.6386011297269812,613

@@ -1,0 +1,22 @@
+model_type,validation_date,clf,parameters,auc-roc,p_at_1,p_at_2,p_at_5,p_at_10,p_at_20,p_at_30,p_at_50,r_at_1,r_at_2,r_at_5,r_at_10,r_at_20,r_at_30,r_at_50,baseline,len_x_train
+RF,2012-07-01,"RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=1, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, n_estimators=1, n_jobs=-1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)","{'max_depth': 1, 'max_features': 'sqrt', 'min_samples_split': 10, 'n_estimators': 1}",0.5010385218939505,0.7995930824008138,0.8998474834773768,0.9599349196664633,0.9799694966954754,0.9899852574856387,0.9933236181245129,0.9959942251774131,0.011131252478332295,0.025066560924488755,0.06684416246530335,0.13649238089843085,0.2757888177646859,0.4150852546309409,0.693678128363451,0.6813948158888412,21423
+RF,2013-01-01,"RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=1, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, n_estimators=1, n_jobs=-1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)","{'max_depth': 1, 'max_features': 'sqrt', 'min_samples_split': 10, 'n_estimators': 1}",0.5364097093009421,1.0,1.0,1.0,0.7911016303519732,0.6096297424958098,0.7397531616638733,0.8438214231296663,0.014171221187703873,0.028342442375407745,0.07087770840984209,0.1121600311075587,0.1728629755244,0.3146399948154069,0.598172430926098,0.7176431037283177,50100
+RF,2013-07-01,"RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=1, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=10,
+            min_weight_fraction_leaf=0.0, n_estimators=1, n_jobs=-1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)","{'max_depth': 1, 'max_features': 'sqrt', 'min_samples_split': 10, 'n_estimators': 1}",0.5070282050648044,1.0,0.6318181818181818,0.8001816530426885,0.9000908265213442,0.9500510841185151,0.9666994626504201,0.98001998001998,0.013954078396549536,0.017632880882912597,0.05587974121527337,0.12571356082709628,0.2654129138652797,0.40508055308892554,0.6844475453507548,0.7162963516571403,74359
