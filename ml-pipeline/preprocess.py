@@ -31,7 +31,7 @@ def pre_process(infile):
     #create the output variable (whether the project was funded within 60 days)
     pre_df['dif'] = pre_df['datefullyfunded'] - pre_df['date_posted']
     pre_df['dif'] = pre_df['dif'].astype('timedelta64[D]')
-    pre_df['less_60'] = np.where(pre_df['dif'] < 60, 1, 0)      # create output variable
+    pre_df['less_60'] = np.where(pre_df['dif'] > 60, 1, 0)      # create output variable
 
     #discritize necessary variables
     discretize_vars = ['total_price_including_optional_support',
