@@ -19,8 +19,9 @@ def pre_process(infile):
     #explore read_dataset
     rc.describe_data(pre_df)
 
-    #fill missing values w/ the median of the column
-    # rc.fill_missing_w_median(pre_df)
+    #fill missing values w/ the median of the column - GO BACK TO This
+    #This shouldn't be here, but I'm doing it to make the rest of the code run right now.
+    rc.fill_missing_w_median(pre_df)
 
     #convert date columns to datetime
     columns_to_date_time = ['datefullyfunded', 'date_posted']
