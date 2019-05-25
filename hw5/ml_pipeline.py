@@ -23,6 +23,10 @@ from datetime import timedelta
 from datetime import datetime
 import sys
 
+#next steps:
+    #seems like precision and recall is not being calculated correctly
+    #but try with different parameters now?
+
 # for jupyter notebooks
 #%matplotlib inline
 
@@ -38,30 +42,17 @@ def define_clfs_params(grid_size):
     Large: Larger grid that has a lot more parameter sweeps
     """
 
-    clfs = {'RF': RandomForestClassifier(n_estimators=50, n_jobs=-1),
-        'ET': ExtraTreesClassifier(n_estimators=10, n_jobs=-1, criterion='entropy'),
-        'AB': AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), algorithm="SAMME", n_estimators=200),
-        'LR': LogisticRegression(penalty='l1', C=1e5),
-        'SVM': svm.SVC(kernel='linear', probability=True, random_state=0),
-        'GB': GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=10),
+    clfs = {'RF': RandomForestClassifier(),
+        'ET': ExtraTreesClassifier(),
+        'AB': AdaBoostClassifier(DecisionTreeClassifier(),),
+        'LR': LogisticRegression(),
+        'SVM': svm.SVC(),
+        'GB': GradientBoostingClassifier(),
         'NB': GaussianNB(),
         'DT': DecisionTreeClassifier(),
-        'SGD': SGDClassifier(loss="hinge", penalty="l2"),
-        'KNN': KNeighborsClassifier(n_neighbors=3)
+        'SGD': SGDClassifier(),
+        'KNN': KNeighborsClassifier()
             }
-
-    large_grid = {
-    'RF':{'n_estimators': [1,10,100,1000,10000], 'max_depth': [1,5,10,20,50,100], 'max_features': ['sqrt','log2'],'min_samples_split': [2,5,10], 'n_jobs': [-1]},
-    'LR': { 'penalty': ['l1','l2'], 'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
-    'SGD': { 'loss': ['hinge','log','perceptron'], 'penalty': ['l2','l1','elasticnet']},
-    'ET': { 'n_estimators': [1,10,100,1000,10000], 'criterion' : ['gini', 'entropy'] ,'max_depth': [1,5,10,20,50,100], 'max_features': ['sqrt','log2'],'min_samples_split': [2,5,10], 'n_jobs': [-1]},
-    'AB': { 'algorithm': ['SAMME', 'SAMME.R'], 'n_estimators': [1,10,100,1000,10000]},
-    'GB': {'n_estimators': [1,10,100,1000,10000], 'learning_rate' : [0.001,0.01,0.05,0.1,0.5],'subsample' : [0.1,0.5,1.0], 'max_depth': [1,3,5,10,20,50,100]},
-    'NB' : {},
-    'DT': {'criterion': ['gini', 'entropy'], 'max_depth': [1,5,10,20,50,100],'min_samples_split': [2,5,10]},
-    'SVM' :{'C' :[0.00001,0.0001,0.001,0.01,0.1,1,10],'kernel':['linear']},
-    'KNN' :{'n_neighbors': [1,5,10,25,50,100],'weights': ['uniform','distance'],'algorithm': ['auto','ball_tree','kd_tree']}
-           }
 
     small_grid = {
     'RF':{'n_estimators': [10,100], 'max_depth': [5,50], 'max_features': ['sqrt','log2'],'min_samples_split': [2,10], 'n_jobs': [-1]},
@@ -184,115 +175,104 @@ def temporal_split(data, date_variable, validation_start_date, testing_length, g
         - testing_df: validation dataset
 
     '''
-    train_set = data.loc[data[date_variable] <= validation_date - timedelta(days=60)
-
+    validation_start_date = datetime.strptime(validation_start_date, '%Y-%m-%d')
+    data[date_variable] = pd.to_datetime(data[date_variable])
+    train_set = data.loc[data[date_variable] <= validation_start_date - timedelta(days=60)]
     #create validation set
-    validation_end_date = validation_start_date + timedelta(months=testing_length) - timedelta(days=grace_period)
-    validation_set = data.loc[data[date_variable] > validation_start_date & data[date_variable] < validation_end_date]
+    # validation_end_date = validation_start_date
+    # np.timedelta64(testing_length, 'M')
+    # timedelta(weeks=(testing_length*4))
+    validation_end_date = validation_start_date + pd.DateOffset(months=testing_length) - timedelta(days=grace_period)
+    print(validation_start_date)
+    validation_set = data.loc[(data[date_variable] > validation_start_date) & (data[date_variable] <= validation_end_date)]
+    # validation_set = data.loc[data[date_variable] <= validation_end_date]
 
     return train_set, validation_set
 
-def clf_loop(train_set, validation_set, models_to_run, clfs, grid, features, outfile):
+def clf_loop(train_set, validation_set, features, pred_var, models_to_run, clfs, grid, results_df):
     """
     Runs the loop using models_to_run, clfs, gridm and the data
     """
-    results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'parameters', 'auc-roc', \
-                                        'p_at_1', 'p_at_2', 'p_at_5', 'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50', \
-                                        'r_at_1', 'r_at_2', "r_at_5", "r_at_10", 'r_at_20', 'r_at_30', 'r_at_50', \
-                                         'baseline', 'len_x_train'))
-    validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
+    X_train = train_set[features]
+    y_train = train_set[pred_var]
+    X_test = validation_set[features]
+    y_test = validation_set[pred_var]
 
-    for index,clf in enumerate([clfs[x] for x in models_to_run]):
-        for validation_date in validation_dates:
-            print(validation_date)
+    for index, clf in enumerate([clfs[x] for x in models_to_run]):
+        parameter_values = grid[models_to_run[index]]
+        for p in ParameterGrid(parameter_values):
+            try:
+                clf.set_params(**p)
+                y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
+                # you can also store the model, feature importances, and prediction scores
+                # we're only storing the metrics for now
+                y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
+                baseline = y_pred_probs.sum()/len(y_pred_probs)
+                results_df.loc[len(results_df)] = [models_to_run[index],validation_date, clf, p,
+                                                   roc_auc_score(y_test, y_pred_probs),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,1.0),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,2.0),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,5.0),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,10.0),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,20.0),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,30.0),
+                                                   precision_at_k(y_test_sorted,y_pred_probs_sorted,50.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,1.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,2.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,5.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,10.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,20.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,30.0),
+                                                   recall_at_k(y_test_sorted,y_pred_probs_sorted,50.0),
+                                                   baseline, len(X_train)]
 
-            # create training and valdation sets
-            train_set, validation_set = temporal_split(data, 'date_posted', validation_date, 6, 60)
+                # plot_precision_recall_n(y_test,y_pred_probs,clf)
+                print("got here 1")
 
-            #preprocess train and validation sets separately
-            train_set = pre.pre_process(train_set)
-            validation_set = pre.pre_process(validation_set)
-
-            X_train = train_set[features]
-            y_train = train_set['greater_60']
-            X_test = validation_set[features]
-            y_test = validation_set['greater_60']
-
-
-            parameter_values = grid[models_to_run[index]]
-            for p in ParameterGrid(parameter_values):
-                try:
-                    clf.set_params(**p)
-                    y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
-                    # you can also store the model, feature importances, and prediction scores
-                    # we're only storing the metrics for now
-                    y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
-                    baseline = y_pred_probs.sum()/len(y_pred_probs)
-                    results_df.loc[len(results_df)] = [models_to_run[index],validation_date, clf, p,
-                                                       roc_auc_score(y_test, y_pred_probs),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,1.0),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,2.0),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,5.0),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,10.0),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,20.0),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,30.0),
-                                                       precision_at_k(y_test_sorted,y_pred_probs_sorted,50.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,1.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,2.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,5.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,10.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,20.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,30.0),
-                                                       recall_at_k(y_test_sorted,y_pred_probs_sorted,50.0),
-                                                       baseline, len(X_train)]
-
-                    # plot_precision_recall_n(y_test,y_pred_probs,clf)
-                    print("got here 1")
-
-                except IndexError as e:
-                    print('Error:',e)
-                    continue
+            except IndexError as e:
+                print('Error:',e)
+                continue
         print("Reading to file")
-        csv_to_output = outfile + models_to_run[index] + ".csv"
-        results_df.to_csv(csv_to_output, index=False)
+        # csv_to_output = outfile + models_to_run[index] + ".csv"
+        # results_df.to_csv(csv_to_output, index=False)
 
     return results_df
 
 
-
-# def main(infile, outfile):
-def build_output_models(infile, outfile, models_to_run, features, run_on_sample, grid_size):
-
-    #read in data
-    raw_data = rc.read_dataset(infile)
-    #create temporal split
-    validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
-    for validation_date in validation_dates:
-        train_set, validation_set = temporal_split(data, 'date_posted', validation_date, 6, 60)
-
-        #preprocess the train_set and test_set separately
-        train_set = pre.pre_process(train_set)
-        validation_set = pre.pre_process(validation_set)
-
-
-    # define grid to use: test, small, large
-    clfs, grid = define_clfs_params(grid_size)
-    df_sub = df.sample(frac=.25)
-
     # define models to run
     # models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
-    # models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
- # Logistic Regression, K-Nearest Neighbor, Decision Trees, SVM, Random Forests, Boosting, and Bagging.
-    # models_to_run=['KNN', 'RF', 'LR', 'DT', 'AB', 'SVM']
-    # models_to_run=['DT', 'RF', 'AB', 'KNN', 'LR', 'SVM']
-    # models_to_run=['RF']
-    # models_to_run=['LR']
+infile = 'data/projects_2012_2013.csv'
+outfile = 'output/test_run.csv'
+grid_size = 'test'
+validation_date = '2012-07-01'
+models_to_run = ['DT']
 
-    # load data from csv
-    # df = pd.read_csv("/Users/rayid/Projects/uchicago/Teaching/MLPP-2017/Homeworks/Assignment 2/credit-data.csv")
+def build_output_models(infile, outfile, models_to_run, run_on_sample, grid_size):
 
-    # COME BACK HERE - select features to use
-    features  = [col for col in df if col not in ["projectid",
+    #read in data
+raw_data = rc.read_dataset(infile)
+#create temporal split
+validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
+results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'parameters', 'auc-roc', \
+                                    'p_at_1', 'p_at_2', 'p_at_5', 'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50', \
+                                    'r_at_1', 'r_at_2', "r_at_5", "r_at_10", 'r_at_20', 'r_at_30', 'r_at_50', \
+                                     'baseline', 'len_x_train'))
+
+
+
+# define grid to use: test, small, large
+clfs, grid = define_clfs_params(grid_size)
+# df_sub = raw_.sample(frac=.25)
+# loop over validation dates here to create the training and validation sets
+# and then preprocess
+for validation_date in validation_dates:
+    train_set, validation_set = temporal_split(raw_data, 'date_posted', validation_date, 6, 60)
+
+    #preprocess the train_set and test_set separately
+    train_set = pre.pre_process(train_set)
+    validation_set = pre.pre_process(validation_set)
+
+    features  = [col for col in train_set if col not in ["projectid",
                         "projectid", "teacher_acctid", "schoolid", "school_ncesid",
                         "school_latitude", "school_longitude", "school_city",
                         "school_state", "school_metro", "school_district", "school_county",
@@ -306,14 +286,19 @@ def build_output_models(infile, outfile, models_to_run, features, run_on_sample,
                         "resource_type", "poverty_level", "grade_level",
                         "total_price_including_optional_support", "students_reached",
                         "date_posted", "datefullyfunded", "dif", "greater_60"]]
-
-
-    if run_on_sample == 1:
-        results_df = clf_loop(models_to_run, clfs, grid, df_sub, features, "output/sample_mod_v2")
-    else:
-        results_df = clf_loop(models_to_run, clfs, grid, df, features, "output/sample_mod_v2_")
-    # save to csv
-    results_df.to_csv(outfile, index=False)
+    #run the loop and save the output df
+    results_df = clf_loop(train_set, validation_set, features, 'greater_60', models_to_run, clfs, grid, results_df)
+    results_df
+    # # define grid to use: test, small, large
+    # clfs, grid = define_clfs_params(grid_size)
+    # df_sub = df.sample(frac=.25)
+    # if run_on_sample == 1:
+    #     results_df = clf_loop(train_set, validation_set, features, 'greater_60', clfs, grid, results_df, features, "output/sample_mod_v2")
+    # else:
+    #     results_df = clf_loop(models_to_run, clfs, grid, df, features, "output/sample_mod_v2_")
+    # # save to csv
+results_df.to_csv(outfile, index=False)
+results_df
 
 def main():
     infile = sys.argv[1]
