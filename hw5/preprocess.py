@@ -24,10 +24,11 @@ def pre_process(raw_data, dummy_vars, boolean_vars, vars_not_to_include, columns
     #convert date columns to datetime and add a variable to the dataset with the
     # month of the date, to be used as a feature in the dataset
     for col in columns_to_datetime:
+        print(col)
         pre_df[col] = pd.to_datetime(pre_df[col])
-        col_month = col + '_month'
-        pre_df[col_month] = pre_df[col].dt.month
-
+        col_month = col + '_month_year'
+        pre_df[col_month] = pre_df[col].dt.to_period('M')
+        pre_df[col_month].head()
     #create the output variable  - 1 if NOT funded within 60 days, 0 if funded within 60 days
     pre_df = create_predictor_variable(pre_df)
 

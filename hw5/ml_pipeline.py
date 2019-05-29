@@ -114,7 +114,7 @@ def generate_binary_at_k(y_scores, k):
     cutoff_index = int(len(y_scores) * (k / 100.0))
     test_predictions_binary = [1 if x < cutoff_index else 0 for x in range(len(y_scores))]
     return test_predictions_binary
-
+['school_district_Chowchilla School District']
 def precision_at_k(y_true, y_scores, k):
     y_scores, y_true = joint_sort_descending(np.array(y_scores), np.array(y_true))
     preds_at_k = generate_binary_at_k(y_scores, k)
@@ -129,6 +129,22 @@ def recall_at_k(y_true, y_scores, k):
     recall = recall_score(y_true_sorted, preds_at_k)
 
     return recall
+
+def f1_at_k(y_true, y_scores, k):
+    y_scores_sorted, y_true_sorted = joint_sort_descending(np.array(y_scores), np.array(y_true))
+    preds_at_k = generate_binary_at_k(y_scores_sorted, k)
+    f1 = f1_score(y_true_sorted, preds_at_k)
+
+    return f1
+
+def create_evaluation_scores(y_true, y_scores, k):
+    y_scores_sorted, y_true_sorted = joint_sort_descending(np.array(y_scores), np.array(y_true))
+    preds_at_k = generate_binary_at_k(y_scores_sorted, k)
+    precision = precision_score(y_true, preds_at_k)
+    recall = recall_score(y_true_sorted, preds_at_k)
+    f1 = f1_score(y_true_sorted, preds_at_k)
+
+    return [precision, recall, f1]
 
 def plot_precision_recall_n(y_true, y_prob, model_name):
     from sklearn.metrics import precision_recall_curve
@@ -155,12 +171,16 @@ def plot_precision_recall_n(y_true, y_prob, model_name):
     ax1.set_ylim([0,1])
     ax1.set_ylim([0,1])
     ax2.set_xlim([0,1])
-
     name = model_name
     plt.title(name)
-    #come back to this
-    # plt.savefig(name)
-    # plt.show()
+    plt.title(name)
+    if (output_type == 'save'):
+        plt.savefig(name)
+    elif (output_type == 'show'):
+        plt.show()
+    else:
+        plt.show()
+
 
 def temporal_split(data, date_variable, validation_start_date, testing_length, grace_period):
     '''
@@ -194,7 +214,7 @@ def temporal_split(data, date_variable, validation_start_date, testing_length, g
     # timedelta(weeks=(testing_length*4))
     validation_end_date = validation_start_date + pd.DateOffset(months=testing_length) - timedelta(days=grace_period)
     print(validation_start_date)
-    validation_set = data.loc[(data[date_variable] > validation_start_date) & (data[date_variable] <= validation_end_date)]
+    validation_set = data.loc[(data[date_variable] > validation_start_date) & ['school_district_Chowchilla School District'](data[date_variable] <= validation_end_date)]
     # validation_set = data.loc[data[date_variable] <= validation_end_date]
 
     return train_set, validation_set
@@ -258,7 +278,7 @@ testing_window = 6
 #     Come back to this so you don't have to hard code the validation dates
 
 #       Takes the start date and end date of the full time period used in the pipeline,
-#     as well as the testing window time period, and outputs the validation dates.
+#     as well as the testing window time period, and outputs the validation dates.re
 #
 #     Inputs:
 #         - start_date: (str) 'YYYY-MM-DD'
@@ -300,13 +320,14 @@ dummy_vars = ['teacher_prefix',
               'primary_focus_area', 'secondary_focus_subject',
               'secondary_focus_area', 'resource_type',
               'poverty_level', 'grade_level', 'school_metro', 'school_district',
-              'school_county']
-
+              'school_county', 'school_city', 'school_state']
+# for col in train_set.columns:
+#     print(col)
 #hold off on discretizing any variables for now
 # discretize_vars = ['total_price_including_optional_support', 'students_reached']
 boolean_vars = ['eligible_double_your_impact_match', 'school_charter', 'school_magnet']
 #some variables are id vars or long lat, we don't want to include these as features
-vars_not_to_include = ["projectid",
+vars_not_to_include = ["projectid",re
                     "projectid", "teacher_acctid", "schoolid", "school_ncesid"]
 prediction_var = 'not_funded'
 ################################################################################
@@ -314,13 +335,15 @@ prediction_var = 'not_funded'
 ################################################################################
 #read in data
 raw_data = rc.read_dataset(infile)
-raw_data['date_posted']
-date = pd.to_datetime(raw_data['date_posted'])
-col = 'date_posted'
-raw_data[col] = pd.to_datetime(raw_data[col])
-col_month = col + '_month'
-raw_data[col_month] = raw_data[col].dt.month
-
+# raw_data['date_posted']
+# date = pd.to_datetime(raw_data['date_posted'])
+# col = 'date_posted'
+# raw_data[col] = pd.to_datetime(raw_data[col])
+# col_month = col + '_month'
+# raw_data[col_month] = raw_data[col].dt.month
+# col_month_year = col + '_month_year'
+# raw_data[col_month_year] = raw_data[col].dt.to_period('M')
+# raw_data['date_posted_month_year']
 #create temporal split
 results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'parameters', 'auc-roc', \
                                     'p_at_1', 'p_at_2', 'p_at_5', 'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50', \
@@ -337,35 +360,35 @@ for validation_date in validation_dates:
 
     #preprocess the train_set and test_set separately
     train_set = pre.pre_process(train_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
-    validation_set = pre.pre_process(validation_set, boolean_vars, vars_not_to_include, columns_to_datetime)
+    validation_set = pre.pre_process(validation_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
+
+    #create features - there will be features in the train that don't exist in test and vice versa
+    #the model will only actually use the union of the two.
+    train_features  = list(train_set.columns)
+    test_features = list(validation_set.columns)
+
+    #find union of the two lists
+    intersection_features = list(set(train_features) & set(test_features))
+    intersection_features.remove(prediction_var)
+    # come back, possibly use all train features, and only test features that are the same. Create extra vars in test and set them to 0
 
 
-    features  = [col for col in train_set if col not in ["projectid",
-                        "projectid", "teacher_acctid", "schoolid", "school_ncesid",
-                        "school_latitude", "school_longitude", "school_city",
-                        "school_state", "school_metro", "school_district", "school_county",
-                        "teacher_prefix", "primary_focus_subject", "primary_focus_area"
-                        "secondary_focus_subject", "secondary_focus_area", "resource_type",
-                        "poverty_level", "grade_level", "projectid", "teacher_acctid", "schoolid"
-                        "school_ncesid", "school_latitude", "school_longitude",
-                        "school_city", "school_state", "school_metro", "school_district",
-                        "school_county", "teacher_prefix", "primary_focus_subject",
-                        "primary_focus_area", "secondary_focus_subject", "secondary_focus_area",
-                        "resource_type", "poverty_level", "grade_level",
-                        "total_price_including_optional_support", "students_reached",
-                        "date_posted", "datefullyfunded", "dif", "not_funded"]]
     #run the loop and save the output df
-    results_df = clf_loop(train_set, validation_set, features, prediction_var, models_to_run, clfs, grid, results_df)
+    results_df = clf_loop(train_set, validation_set, intersection_features, prediction_var, models_to_run, clfs, grid, results_df)
     # # define grid to use: test, small, large
     # clfs, grid = define_clfs_params(grid_size)
     # df_sub = df.sample(frac=.25)
     # if run_on_sample == 1:
-    #     results_df = clf_loop(train_set, validation_set, features, 'greater_60', clfs, grid, results_df, features, "output/sample_mod_v2")
+    #     results_df = clf_loop(train_set, validation_set, features, 'greater_60', clfs, grid, results_df, features, "output/sample_mod_v2")re
     # else:
     #     results_df = clf_loop(models_to_run, clfs, grid, df, features, "output/sample_mod_v2_")
     # # save to csv
+
 results_df.to_csv(outfile, index=False)
-return results_df
+
+
+
+#plot the preicsion recall curves for the top 5 models
 
 # def main():
 #     infile = sys.argv[1]
