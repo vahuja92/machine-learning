@@ -27,6 +27,15 @@ import sys
     #seems like precision and recall is not being calculated correctly
     #but try with different parameters now?
 
+# Medium priority:
+#
+#     Throwing away columns that could be useful
+#     Using all models - High: DT, LR, RF, Medium: Bagging, Boosting (adaboost, Gradient boosting), Extras Trees Low: SVM, kNN, NB
+#     Using meaningful parameters for each model and varying them
+
+#However, your precision and recall curve function seems to be incomplete and
+# the implementation of f1 metric seems to be missing. Moreover, your code is a
+# little repetitive in line 208-221 in simple_loop.py.
 # for jupyter notebooks
 #%matplotlib inline
 
@@ -62,10 +71,11 @@ def define_clfs_params(grid_size):
     'AB': { 'algorithm': ['SAMME', 'SAMME.R'], 'n_estimators': [1,10,100,1000,10000]},
     'GB': {'n_estimators': [10,100], 'learning_rate' : [0.001,0.1,0.5],'subsample' : [0.1,0.5,1.0], 'max_depth': [5,50]},
     'NB' : {},
-    'DT': {'criterion': ['gini', 'entropy'], 'max_depth': [1,5,10,20,50,100],'min_samples_split': [2,5,10]},
+    'DT': {'criterion': ['gini'], 'max_depth': [1,5,10,20,50,100],'min_samples_split': [2,5,10]},
     'SVM' :{'C' :[0.00001,0.0001,0.001,0.01,0.1,1,10],'kernel':['linear']},
     'KNN' :{'n_neighbors': [1,5,10,25,50,100],'weights': ['uniform','distance'],'algorithm': ['auto','ball_tree','kd_tree']}
            }
+
 
     test_grid = {
     'RF':{'n_estimators': [1], 'max_depth': [1], 'max_features': ['sqrt'],'min_samples_split': [10]},
@@ -189,6 +199,7 @@ def temporal_split(data, date_variable, validation_start_date, testing_length, g
 
     return train_set, validation_set
 
+
 def clf_loop(train_set, validation_set, features, pred_var, models_to_run, clfs, grid, results_df):
     """
     Runs the loop using models_to_run, clfs, gridm and the data
@@ -238,39 +249,96 @@ def clf_loop(train_set, validation_set, features, pred_var, models_to_run, clfs,
 
     return results_df
 
+start_date = '2000-01-01'
+end_date = '2002-12-31'
+testing_window = 6
+
+# def validation_dates(start_date, end_date, testing_window):
+#     '''
+#     Come back to this so you don't have to hard code the validation dates
+
+#       Takes the start date and end date of the full time period used in the pipeline,
+#     as well as the testing window time period, and outputs the validation dates.
+#
+#     Inputs:
+#         - start_date: (str) 'YYYY-MM-DD'
+#         - end_date: (str) 'YYYY-MM-DD'
+#         - testing window: (int) length of testing window in months
+#     Outputs:
+#         - list of validation/testing start dates
+#     '''
+#     start_date = datetime.strptime(start_date, '%Y-%m-%d')
+#     end_date = datetime.strptime(end_date, '%Y-%m-%d')
+#     validation_list = []
+#     diff_in_dates = start_date - end_date
+#     diff_in_dates = diff_in_dates.days
+#     num_validation_periods = pd.DateOffset(days=diff_in_dates) % pd.DateOffset(months=testing_window)
+#
+#     validation_end_date = start_date + pd.DateOffset(months=testing_window)
+#
 
     # define models to run
     # models_to_run=['RF','DT','KNN', 'ET', 'AB', 'GB', 'LR', 'NB']
+################################################################################
+                            #PARAMETERS
+                    #Change these globals for any different dataset used
+################################################################################
 infile = 'data/projects_2012_2013.csv'
 outfile = 'output/test_run.csv'
-grid_size = 'test'
+grid_size = 'small'
+#this is just for testing
 validation_date = '2012-07-01'
+
+temporal_split_date_var = 'date_posted'
+validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
 models_to_run = ['DT']
 
-def build_output_models(infile, outfile, models_to_run, run_on_sample, grid_size):
+#inputs into the preprocess function - need to tell the function which variables to clean
+columns_to_datetime = ['datefullyfunded', 'date_posted']
+dummy_vars = ['teacher_prefix',
+              'primary_focus_subject',
+              'primary_focus_area', 'secondary_focus_subject',
+              'secondary_focus_area', 'resource_type',
+              'poverty_level', 'grade_level', 'school_metro', 'school_district',
+              'school_county']
 
-    #read in data
+#hold off on discretizing any variables for now
+# discretize_vars = ['total_price_including_optional_support', 'students_reached']
+boolean_vars = ['eligible_double_your_impact_match', 'school_charter', 'school_magnet']
+#some variables are id vars or long lat, we don't want to include these as features
+vars_not_to_include = ["projectid",
+                    "projectid", "teacher_acctid", "schoolid", "school_ncesid"]
+prediction_var = 'not_funded'
+################################################################################
+                            #SCRIPT
+################################################################################
+#read in data
 raw_data = rc.read_dataset(infile)
+raw_data['date_posted']
+date = pd.to_datetime(raw_data['date_posted'])
+col = 'date_posted'
+raw_data[col] = pd.to_datetime(raw_data[col])
+col_month = col + '_month'
+raw_data[col_month] = raw_data[col].dt.month
+
 #create temporal split
-validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
 results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'parameters', 'auc-roc', \
                                     'p_at_1', 'p_at_2', 'p_at_5', 'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50', \
                                     'r_at_1', 'r_at_2', "r_at_5", "r_at_10", 'r_at_20', 'r_at_30', 'r_at_50', \
                                      'baseline', 'len_x_train'))
 
 
-
 # define grid to use: test, small, large
 clfs, grid = define_clfs_params(grid_size)
-# df_sub = raw_.sample(frac=.25)
-# loop over validation dates here to create the training and validation sets
-# and then preprocess
+
+#loop through validation dates to split the train and test sets
 for validation_date in validation_dates:
-    train_set, validation_set = temporal_split(raw_data, 'date_posted', validation_date, 6, 60)
+    train_set, validation_set = temporal_split(raw_data, temporal_split_date_var, validation_date, 6, 60)
 
     #preprocess the train_set and test_set separately
-    train_set = pre.pre_process(train_set)
-    validation_set = pre.pre_process(validation_set)
+    train_set = pre.pre_process(train_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
+    validation_set = pre.pre_process(validation_set, boolean_vars, vars_not_to_include, columns_to_datetime)
+
 
     features  = [col for col in train_set if col not in ["projectid",
                         "projectid", "teacher_acctid", "schoolid", "school_ncesid",
@@ -285,10 +353,9 @@ for validation_date in validation_dates:
                         "primary_focus_area", "secondary_focus_subject", "secondary_focus_area",
                         "resource_type", "poverty_level", "grade_level",
                         "total_price_including_optional_support", "students_reached",
-                        "date_posted", "datefullyfunded", "dif", "greater_60"]]
+                        "date_posted", "datefullyfunded", "dif", "not_funded"]]
     #run the loop and save the output df
-    results_df = clf_loop(train_set, validation_set, features, 'greater_60', models_to_run, clfs, grid, results_df)
-    results_df
+    results_df = clf_loop(train_set, validation_set, features, prediction_var, models_to_run, clfs, grid, results_df)
     # # define grid to use: test, small, large
     # clfs, grid = define_clfs_params(grid_size)
     # df_sub = df.sample(frac=.25)
@@ -298,17 +365,17 @@ for validation_date in validation_dates:
     #     results_df = clf_loop(models_to_run, clfs, grid, df, features, "output/sample_mod_v2_")
     # # save to csv
 results_df.to_csv(outfile, index=False)
-results_df
+return results_df
 
-def main():
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
-    model = sys.argv[3]
-    run_on_sample = sys.argv[5]
-        # 1 = yes, 0 = no
-    grid_size = sys.argv[5]
-
-    build_output_models(infile, outfile, model, run_on_sample, grid_size)
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     infile = sys.argv[1]
+#     outfile = sys.argv[2]
+#     model = sys.argv[3]
+#     run_on_sample = sys.argv[5]
+#         # 1 = yes, 0 = no
+#     grid_size = sys.argv[5]
+#
+#     build_output_models(infile, outfile, model, run_on_sample, grid_size)
+#
+# if __name__ == '__main__':
+#     main()
