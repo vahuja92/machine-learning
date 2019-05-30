@@ -8,8 +8,7 @@ import numpy as np
 from datetime import timedelta
 from datetime import datetime
 
- #You discarded many important features in line 259-172, simple_loop.py, such as teacher_prefix.
- #fix the readme, make sure this runs from the command line.
+
 def pre_process(raw_data, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime):
     '''
     Pre-process a read dataframe
@@ -24,22 +23,18 @@ def pre_process(raw_data, dummy_vars, boolean_vars, vars_not_to_include, columns
     #convert date columns to datetime and add a variable to the dataset with the
     # month of the date, to be used as a feature in the dataset
     for col in columns_to_datetime:
-        print(col)
         pre_df[col] = pd.to_datetime(pre_df[col])
-        col_month = col + '_month_year'
-        pre_df[col_month] = pre_df[col].dt.to_period('M')
-        pre_df[col_month].head()
+
     #create the output variable  - 1 if NOT funded within 60 days, 0 if funded within 60 days
     pre_df = create_predictor_variable(pre_df)
 
+    #not discretizing variables for this run - not necessary and difficult to do on training and testing separately
     # #discritize necessary variables
     # discretize_vars = ['total_price_including_optional_support',
     #                    'students_reached']
     # for var in discretize_vars:
     #     pre_df[var] = rc.discretize_cont_var(pre_df, var, q_num_quantiles = 4)
-            # does this work, or do i have to convert again to different type?
 
-    #make this modular - create checks for the types of data that can be turned into dummies
 
     for var in dummy_vars:
         pre_df = rc.create_dummies(pre_df, var, 'int')
