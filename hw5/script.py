@@ -11,8 +11,8 @@ validation_date = '2012-07-01'
 
 temporal_split_date_var = 'date_posted'
 validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
-# models_to_run = ['DT', 'RF', 'LR', 'GB', 'AB', 'SVM', 'KNN']
-models_to_run = ['GB', 'AB', 'SVM', 'KNN']
+models_to_run = ['DT', 'RF', 'LR']
+# models_to_run = ['GB', 'AB', 'SVM', 'KNN']
 
 #inputs into the preprocess function - need to tell the function which variables to clean
 columns_to_datetime = ['datefullyfunded', 'date_posted']
@@ -41,6 +41,8 @@ results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'par
                                     'r_at_1', 'r_at_2', "r_at_5", "r_at_10", 'r_at_20', 'r_at_30', 'r_at_50', \
                                     'f1_at_1', 'f1_at_2', "f1_at_5", "f1_at_10", 'f1_at_20', 'f1_at_30', 'f1_at_50',
                                      'baseline', 'len_x_train'))
+
+clfs, grid = ml.define_clfs_params(grid_size)
 
 for validation_date in validation_dates:
     train_set, validation_set = ml.temporal_split(raw_data, temporal_split_date_var, validation_date, 6, 60)
