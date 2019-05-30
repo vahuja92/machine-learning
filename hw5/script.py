@@ -42,22 +42,21 @@ results_df =  pd.DataFrame(columns=('model_type', 'validation_date', 'clf', 'par
                                     'f1_at_1', 'f1_at_2', "f1_at_5", "f1_at_10", 'f1_at_20', 'f1_at_30', 'f1_at_50',
                                      'baseline', 'len_x_train'))
 
-                                     for validation_date in validation_dates:
-                                         train_set, validation_set = ml.temporal_split(raw_data, temporal_split_date_var, validation_date, 6, 60)
+ for validation_date in validation_dates:
+     train_set, validation_set = ml.temporal_split(raw_data, temporal_split_date_var, validation_date, 6, 60)
 
-                                         #preprocess the train_set and test_set separately
-                                         train_set = pre.pre_process(train_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
-                                         validation_set = pre.pre_process(validation_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
+     #preprocess the train_set and test_set separately
+     train_set = pre.pre_process(train_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
+     validation_set = pre.pre_process(validation_set, dummy_vars, boolean_vars, vars_not_to_include, columns_to_datetime)
 
-                                         #create features - there will be features in the train that don't exist in test and vice versa
-                                         #the model will only actually use the union of the two.
-                                         train_features  = list(train_set.columns)
-                                         test_features = list(validation_set.columns)
+     #create features - there will be features in the train that don't exist in test and vice versa
+     #the model will only actually use the union of the two.
+     train_features  = list(train_set.columns)
+     test_features = list(validation_set.columns)
 
-                                         #find union of the two lists
-                                         intersection_features = list(set(train_features) & set(test_features))
-                                         intersection_features.remove(prediction_var)
+     #find union of the two lists
+     intersection_features = list(set(train_features) & set(test_features))
+     intersection_features.remove(prediction_var)
 
-                                         #run the loop and save the output df
-                                         results_df = ml.clf_loop(train_set, validation_set, intersection_features, prediction_var, models_to_run, clfs, grid, results_df, validation_date, "output/intermediate.csv")
-                                         
+     #run the loop and save the output df
+     results_df = ml.clf_loop(train_set, validation_set, intersection_features, prediction_var, models_to_run, clfs, grid, results_df, validation_date, "output/intermediate.csv")
