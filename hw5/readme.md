@@ -1,3 +1,5 @@
+ README
+
 To run the model, open the ml_pipeline_script.ipynb notebook and run the notebook.
 
 The output "test_run.csv" was produced by running this notebook. 
