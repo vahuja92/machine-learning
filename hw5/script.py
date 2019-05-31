@@ -3,6 +3,11 @@ import preprocess as pre
 import ml_pipeline as ml
 import preprocess_helper as rc
 
+
+################################################################################
+                              #SET GLOBALS FOR DATASET
+################################################################################
+
 infile = 'data/projects_2012_2013.csv'
 outfile = 'output/final_submission_hw5.csv'
 grid_size = 'small'
@@ -20,12 +25,9 @@ dummy_vars = ['teacher_prefix',
               'secondary_focus_area', 'resource_type',
               'poverty_level', 'grade_level', 'school_metro', 'school_district',
               'school_county', 'school_city', 'school_state']
-# for col in train_set.columns:
-#     print(col)
-#hold off on discretizing any variables for now
-# discretize_vars = ['total_price_including_optional_support', 'students_reached']
+
 boolean_vars = ['eligible_double_your_impact_match', 'school_charter', 'school_magnet']
-#some variables are id vars or long lat, we don't want to include these as features
+#some variables are id vars that we don't want to include these as features
 vars_not_to_include = ["projectid", "projectid", "teacher_acctid", "schoolid", "school_ncesid"]
 prediction_var = 'not_funded'
 
