@@ -4,15 +4,13 @@ import ml_pipeline as ml
 import preprocess_helper as rc
 
 infile = 'data/projects_2012_2013.csv'
-outfile = 'output/test_run_v2.csv'
+outfile = 'output/final_submission_hw5.csv'
 grid_size = 'small'
-#this is just for testing
-validation_date = '2012-07-01'
 
 temporal_split_date_var = 'date_posted'
 validation_dates = ['2012-07-01', '2013-01-01', '2013-07-01']
-models_to_run = ['DT', 'RF', 'LR']
-# models_to_run = ['GB', 'AB', 'SVM', 'KNN']
+models_to_run = ['DT', 'RF', 'LR', 'GB', 'AB']
+# did not run these models - 'SVM', 'KNN'
 
 #inputs into the preprocess function - need to tell the function which variables to clean
 columns_to_datetime = ['datefullyfunded', 'date_posted']
@@ -61,4 +59,4 @@ for validation_date in validation_dates:
     intersection_features.remove(prediction_var)
 
     #run the loop and save the output df
-    results_df = ml.clf_loop(train_set, validation_set, intersection_features, prediction_var, models_to_run, clfs, grid, results_df, validation_date, "output/intermediate.csv")
+    results_df = ml.clf_loop(train_set, validation_set, intersection_features, prediction_var, models_to_run, clfs, grid, results_df, validation_date, outfile)
