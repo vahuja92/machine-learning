@@ -1,6 +1,7 @@
  README
 
-To run the model, type python3 script.py from the command line. 
+To run the model, type python3 script.py from the command line. The final output is in the output folder, named 'final_output_hw5.csv'.
+
 All the globals used to in the functions are specified in the script.py program. One could change the infile, outfile and other preprocessing and cleaning parameters in the file and run from the command line if desired.
 
 script.py imports functions from three python programs:
